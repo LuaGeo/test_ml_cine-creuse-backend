@@ -86,3 +86,17 @@ def setup_recommendations_routes(app):
     def genres():
         genres = df['main_genre'].unique().tolist()  # Assuming 'main_genre' column exists in your DataFrame
         return jsonify(genres)
+    
+    @app.route('/search', methods=['GET'])
+    def search_movies():
+        query = request.args.get('query', '')
+        if not query:
+            return jsonify([])
+
+        # Perform a case-insensitive search for the query in the 'title' column
+        search_results = df[df['title'].str.contains(query, case=False, na=False)]
+        
+        results = search_results.head(10).to_dict(orient='records')  # Limit to 10 results
+
+        return jsonify(results)
+

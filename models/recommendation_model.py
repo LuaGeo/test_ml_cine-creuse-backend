@@ -3,7 +3,15 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 import numpy as np
 
-df = pd.read_csv('/Users/lua/wild/project2/test_ml_cine-creuse-backend/data/data_cleaned_ml_with_original_columns.csv')
+import gdown
+
+link = "https://drive.google.com/uc?export=download&id=1T88BybPE21WUqUk7n3TvooopZqMDYn83"
+# Download the file using gdown
+output = 'data_cleaned_ml_with_original_columns.csv.zip'
+gdown.download(link, output, quiet=False)
+df = pd.read_csv(output)
+
+# df = pd.read_csv('/Users/lua/wild/project2/test_ml_cine-creuse-backend/data/data_cleaned_ml_with_original_columns.csv')
 
 df = df.dropna()
 
