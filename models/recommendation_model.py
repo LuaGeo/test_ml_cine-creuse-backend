@@ -25,7 +25,7 @@ scaler = StandardScaler()
 numeric_features_scaled = scaler.fit_transform(numeric_features)
 
 # Extract overview features (already processed and included in df)
-overview_columns = [col for col in df.columns if col not in ['titleId', 'title', 'nconst_director', 'overview'] + actor_columns + genre_columns + list(numeric_features.columns)]
+overview_columns = [col for col in df.columns if col not in ['titleId', 'title', 'nconst_director', 'overview', 'main_genre', 'original_actors', 'Director_name', 'poster_path', 'backdrop_path', 'production_companies_name', 'original_overview'] + actor_columns + genre_columns + list(numeric_features.columns)]
 overview_features = df[overview_columns].values
 
 # Combine all features
