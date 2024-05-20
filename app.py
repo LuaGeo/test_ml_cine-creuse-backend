@@ -28,5 +28,5 @@ setup_recommendations_routes(app)
 setup_popular_movies_routes(app)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False)
 
