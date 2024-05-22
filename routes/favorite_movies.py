@@ -1,4 +1,4 @@
-from flask import request, jsonify
+"""from flask import request, jsonify
 from db import mongo
 from models.Favorite_movies import add_favorite_movie, get_favorite_movies, delete_favorite_movie
 
@@ -21,4 +21,4 @@ def setup_favorite_movies_routes(app):
     @app.route('/favorites/<favorite_id>', methods=['DELETE'])
     def delete_favorite(favorite_id):
         response, status = delete_favorite_movie(favorite_id)
-        return jsonify(response), status
+        return jsonify(response), status"""

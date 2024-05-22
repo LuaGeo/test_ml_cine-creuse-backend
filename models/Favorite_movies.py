@@ -1,4 +1,4 @@
-from db import mongo
+"""from db import mongo
 from bson import ObjectId
 from flask import jsonify
 
@@ -24,11 +24,12 @@ def add_favorite_movie(data):
     }) > 0:
         return {"error": "Movie already added to favorites"}, 409
 
-    required_fields = ['title', 'overview', 'poster_path', 'movieId']
+    required_fields = ['title', 'poster_path', 'movieId']
     if not all(field in data for field in required_fields):
         return {"error": "Missing necessary movie details"}, 400
 
     # Convert userId to ObjectId for consistent database storage
+    data['userId'] = ObjectId(data['userId'])
     result = mongo.db['favorite-movies'].insert_one(data)
     return {"message": "Favorite movie added", "id": str(result.inserted_id)}, 201
 
@@ -42,7 +43,6 @@ def get_favorite_movies(user_id):
         favorite_list = [{
             "id": str(favorite["_id"]),
             "title": favorite["title"],
-            "overview": favorite["overview"],
             "poster_path": favorite["poster_path"],
             "movieId": favorite["movieId"],
             "userId": str(favorite["userId"])
@@ -56,4 +56,4 @@ def delete_favorite_movie(favorite_id):
     if result.deleted_count:
         return {"message": "Favorite movie deleted"}, 200
     else:
-        return {"error": "Favorite movie not found"}, 404
+        return {"error": "Favorite movie not found"}, 404"""

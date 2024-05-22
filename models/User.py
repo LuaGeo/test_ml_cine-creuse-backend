@@ -3,6 +3,8 @@
 from db import mongo
 from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
+from bson import ObjectId
+
 
 def register_user(data):
     # Validate data here (ensure username, email, and password are provided)
@@ -26,7 +28,8 @@ def register_user(data):
         "username": data['username'],
         "email": data['email'],
         "password": hashed_password,
-        "token": token
+        "token": token,
+        "favorite_movies": []
     }
 
     # Insert the user document into the database
@@ -44,3 +47,62 @@ def authenticate_user(data):
     else:
         return {"error": "Invalid credentials", "status": 401}
 
+def user_exists(user_id):
+    try:
+        user_id_obj = ObjectId(user_id)
+        return mongo.db.users.count_documents({"_id": user_id_obj}) > 0
+    except:
+        return False
+
+def add_favorite_movie(data):
+    if 'userId' not in data or 'movieId' not in data:
+        return {"error": "Missing userId or movieId"}, 400
+    
+    # Check if the user exists
+    if not user_exists(data['userId']):
+        return {"error": "Invalid userId"}, 404
+
+    user_id_obj = ObjectId(data['userId'])
+    
+    # Check if the movie already exists in the user's favorites
+    if mongo.db.users.count_documents({
+        "_id": user_id_obj,
+        "favorite_movies": data['movieId']
+    }) > 0:
+        return {"error": "Movie already added to favorites"}, 409
+
+    # Add the movie ID to the user's favorite movies list
+    mongo.db.users.update_one(
+        {"_id": user_id_obj},
+        {"$push": {"favorite_movies": data['movieId']}}
+    )
+    
+    return {"message": "Favorite movie added"}, 201
+
+def get_favorite_movies(user_id):
+    if not user_exists(user_id):
+        return {"error": "Invalid userId"}, 404
+    try:
+        user_id_obj = ObjectId(user_id)  # Ensure valid ObjectId
+        user = mongo.db.users.find_one({"_id": user_id_obj}, {"favorite_movies": 1})
+        if not user or 'favorite_movies' not in user:
+            return []
+        return user['favorite_movies']
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+def delete_favorite_movie(data):
+    if 'userId' not in data or 'movieId' not in data:
+        return {"error": "Missing userId or movieId"}, 400
+
+    user_id_obj = ObjectId(data['userId'])
+
+    result = mongo.db.users.update_one(
+        {"_id": user_id_obj},
+        {"$pull": {"favorite_movies": data['movieId']}}
+    )
+    
+    if result.modified_count:
+        return {"message": "Favorite movie deleted"}, 200
+    else:
+        return {"error": "Favorite movie not found"}, 404
