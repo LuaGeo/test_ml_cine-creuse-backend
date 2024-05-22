@@ -4,6 +4,7 @@ from db import mongo
 from werkzeug.security import generate_password_hash, check_password_hash
 import uuid
 from bson import ObjectId
+from flask import jsonify
 
 
 def register_user(data):
@@ -43,7 +44,8 @@ def authenticate_user(data):
 
     user = mongo.db.users.find_one({"username": data['username']})
     if user and check_password_hash(user['password'], data['password']):
-        return {"message": "Login successful", "username": user['username'], "token": user['token']}
+        user_id = str(user['_id'])
+        return {"message": "Login successful", "username": user['username'], "token": user['token'], "userId": user_id}
     else:
         return {"error": "Invalid credentials", "status": 401}
 
@@ -106,3 +108,17 @@ def delete_favorite_movie(data):
         return {"message": "Favorite movie deleted"}, 200
     else:
         return {"error": "Favorite movie not found"}, 404
+    
+
+def check_favorite_status(data):
+    if 'userId' not in data or 'movieId' not in data:
+        return {"error": "Missing userId or movieId"}, 400
+
+    user_id_obj = ObjectId(data['userId'])
+
+    is_favorite = mongo.db.users.count_documents({
+        "_id": user_id_obj,
+        "favorite_movies": data['movieId']
+    }) > 0
+
+    return {"isFavorite": is_favorite}, 200

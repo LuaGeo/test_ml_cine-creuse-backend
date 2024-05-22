@@ -1,7 +1,7 @@
 # Flask user routes
 
 from flask import request, jsonify
-from models.User import register_user, authenticate_user, add_favorite_movie, get_favorite_movies, delete_favorite_movie
+from models.User import register_user, authenticate_user, add_favorite_movie, get_favorite_movies, delete_favorite_movie, check_favorite_status
 
 
 def setup_user_routes(app):
@@ -43,4 +43,13 @@ def setup_favorite_movies_routes(app):
         data = request.json
         print(f"Received data: {data}")
         response, status = delete_favorite_movie(data)
+        return jsonify(response), status
+    
+    @app.route('/favorites', methods=['GET'])
+    def get_favorite_status():
+        data = {
+            "userId": request.args.get('userId'),
+            "movieId": request.args.get('movieId')
+        }
+        response, status = check_favorite_status(data)
         return jsonify(response), status
