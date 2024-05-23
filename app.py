@@ -12,7 +12,8 @@ app = Flask(__name__)
 app.config["MONGO_URI"] = os.getenv("MONGO_URI")
 
 CORS(app)
-CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
+CORS(app, resources={r"/api/*": {"origins": os.getenv("FRONTEND_URL")}}, supports_credentials=True)
+#CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
 # Initialize database
 get_db(app)
 
