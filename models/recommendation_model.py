@@ -3,7 +3,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 import numpy as np
 
-link = "https://cloudlogging.app.goo.gl/pytZTZy3N1PqPJV76"
+link = "https://storage.googleapis.com/cine-la-creuse-bucket/data_cleaned_ml_with_original_columns.zip"
 df = pd.read_csv(link)
 
 # df = pd.read_csv('/Users/lua/wild/project2/test_ml_cine-creuse-backend/data/data_cleaned_ml_with_original_columns.csv')
