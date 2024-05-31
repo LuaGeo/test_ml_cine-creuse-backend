@@ -2,6 +2,8 @@ import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 import numpy as np
+from scipy.sparse import hstack, csr_matrix
+import scipy.sparse
 
 def process_chunk(chunk):
     # Drop NaN values
@@ -20,11 +22,16 @@ def process_chunk(chunk):
     numeric_features = chunk[['averageRating', 'startYear', 'runtimeMinutes', 'popularity']]
     numeric_features_scaled = scaler.fit_transform(numeric_features)
 
+    # Convert to sparse matrix
+    numeric_features_sparse = csr_matrix(numeric_features_scaled)
+
     # Extract overview features (already processed and included in df)
     overview_features = chunk[overview_columns].values
+    overview_features_sparse = csr_matrix(overview_features)
+
 
     # Combine all features
-    combined_features_chunk = np.hstack([numeric_features_scaled, directors_encoded, actors_encoded, genres_encoded, overview_features])
+    combined_features_chunk = hstack([numeric_features_sparse, directors_encoded, actors_encoded, genres_encoded, overview_features_sparse])
     
     return combined_features_chunk, chunk['title'].values
 
@@ -41,7 +48,7 @@ def process_data_in_chunks(df, chunk_size=10000):
         titles.extend(chunk_titles)
     
     # Concatenate all chunk results
-    combined_features = np.vstack(combined_features)
+    combined_features = scipy.sparse.vstack(combined_features)
     return combined_features, titles
 
 # Initialize encoders and scalers
