@@ -28,12 +28,14 @@ def process_chunk(chunk):
     
     return combined_features_chunk, chunk['title'].values
 
-def process_data_in_chunks(parquet_file_path, chunk_size=10000):
+def process_data_in_chunks(df, chunk_size=10000):
     combined_features = []
     titles = []
 
-    # Use an iterator to read the parquet file in chunks
-    for chunk in pd.read_parquet(parquet_file_path, chunksize=chunk_size):
+    # Split the DataFrame into chunks
+    for start in range(0, len(df), chunk_size):
+        end = min(start + chunk_size, len(df))
+        chunk = df.iloc[start:end]
         chunk_combined_features, chunk_titles = process_chunk(chunk)
         combined_features.append(chunk_combined_features)
         titles.extend(chunk_titles)
@@ -55,7 +57,8 @@ overview_columns = ['overview1', 'overview2']  # Replace with your actual overvi
 
 # Process the data in chunks
 link = "https://raw.githubusercontent.com/LuaGeo/test_ml_cine-creuse-backend/main/data/data_cleaned_ml_with_original_columns.parquet"
-combined_features, titles = process_data_in_chunks(link)
+df = pd.read_parquet(link)  # Load the entire Parquet file
+combined_features, titles = process_data_in_chunks(df)
 
 # Calculate the cosine similarity matrix
 similarity_matrix = cosine_similarity(combined_features)
