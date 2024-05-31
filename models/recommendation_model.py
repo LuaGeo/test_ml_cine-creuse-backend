@@ -3,40 +3,62 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 import numpy as np
 
+def process_chunk(chunk):
+    # Drop NaN values
+    chunk = chunk.dropna()
 
-link = "https://raw.githubusercontent.com/LuaGeo/test_ml_cine-creuse-backend/main/data/data_cleaned_ml_with_original_columns.parquet"
-df = pd.read_parquet(link)
+    # One-Hot Encoding for Directors
+    directors_encoded = onehot_encoder.fit_transform(chunk[['nconst_director']]).toarray()
 
-# link = "/Users/lua/wild/project2/test_ml_cine-creuse-backend/data/data_cleaned_ml_with_original_columns.parquet"
-# df = pd.read_parquet(link)
+    # One-Hot Encoding for Actors
+    actors_encoded = onehot_encoder.fit_transform(chunk[actor_columns]).toarray()
 
-df = df.dropna()
+    # One-Hot Encoding for Genres
+    genres_encoded = onehot_encoder.fit_transform(chunk[genre_columns]).toarray()
 
-# One-Hot Encoding for Directors
+    # Standardize numerical features
+    numeric_features = chunk[['averageRating', 'startYear', 'runtimeMinutes', 'popularity']]
+    numeric_features_scaled = scaler.fit_transform(numeric_features)
+
+    # Extract overview features (already processed and included in df)
+    overview_features = chunk[overview_columns].values
+
+    # Combine all features
+    combined_features_chunk = np.hstack([numeric_features_scaled, directors_encoded, actors_encoded, genres_encoded, overview_features])
+    
+    return combined_features_chunk, chunk['title'].values
+
+def process_data_in_chunks(parquet_file_path, chunk_size=10000):
+    combined_features = []
+    titles = []
+
+    # Use an iterator to read the parquet file in chunks
+    for chunk in pd.read_parquet(parquet_file_path, chunksize=chunk_size):
+        chunk_combined_features, chunk_titles = process_chunk(chunk)
+        combined_features.append(chunk_combined_features)
+        titles.extend(chunk_titles)
+    
+    # Concatenate all chunk results
+    combined_features = np.vstack(combined_features)
+    return combined_features, titles
+
+# Initialize encoders and scalers
 onehot_encoder = OneHotEncoder()
-directors_encoded = onehot_encoder.fit_transform(df[['nconst_director']]).toarray()
-
-# One-Hot Encoding for Actors
-actor_columns = ['actor1', 'actor2', 'actor3', 'actor4', 'actor5', 'actor6', 'actor7']
-actors_encoded = onehot_encoder.fit_transform(df[actor_columns]).toarray()
-
-# One-Hot Encoding for Genres
-genre_columns = ['genre1', 'genre2']
-genres_encoded = onehot_encoder.fit_transform(df[genre_columns]).toarray()
-
-# Standardize numerical features
-numeric_features = df[['averageRating', 'startYear', 'runtimeMinutes', 'popularity']]
 scaler = StandardScaler()
-numeric_features_scaled = scaler.fit_transform(numeric_features)
 
-# Extract overview features (already processed and included in df)
-overview_columns = [col for col in df.columns if col not in ['titleId', 'title', 'nconst_director', 'overview', 'main_genre', 'original_actors', 'Director_name', 'poster_path', 'backdrop_path', 'production_companies_name', 'original_overview'] + actor_columns + genre_columns + list(numeric_features.columns)]
-overview_features = df[overview_columns].values
+# Specify the columns to be encoded
+actor_columns = ['actor1', 'actor2', 'actor3', 'actor4', 'actor5', 'actor6', 'actor7']
+genre_columns = ['genre1', 'genre2']
 
-# Combine all features
-combined_features = np.hstack([numeric_features_scaled, directors_encoded, actors_encoded, genres_encoded, overview_features])
+# Specify the overview columns
+overview_columns = ['overview1', 'overview2']  # Replace with your actual overview columns
+
+# Process the data in chunks
+link = "https://raw.githubusercontent.com/LuaGeo/test_ml_cine-creuse-backend/main/data/data_cleaned_ml_with_original_columns.parquet"
+combined_features, titles = process_data_in_chunks(link)
 
 # Calculate the cosine similarity matrix
 similarity_matrix = cosine_similarity(combined_features)
 
-sim_matrix_df = pd.DataFrame(similarity_matrix, index=df['title'], columns=df['title'])
+# Create a DataFrame for the similarity matrix
+sim_matrix_df = pd.DataFrame(similarity_matrix, index=titles, columns=titles)
